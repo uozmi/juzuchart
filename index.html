@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>JuzuChart</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div class="app">
+  <header class="toolbar">
+    <div class="flow-name-wrap">
+      <button type="button" class="flow-name-display" id="flowNameDisplay" title="クリックしてフロー名を編集">無題</button>
+      <input id="flowName" class="flow-name-input hidden" value="無題" autocomplete="off" aria-label="フロー名" />
+      <span class="dirty" id="dirtyMark" title="未Exportの変更">*</span>
+    </div>
+    <div class="toolbar-sep" role="separator" aria-hidden="true"></div>
+    <div class="toolbar-menu" id="fileMenuWrap">
+      <button type="button" class="btn icon-btn" id="fileMenuBtn" title="ファイル" aria-label="ファイルメニュー" aria-haspopup="menu" aria-expanded="false" aria-controls="fileMenuDropdown">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M6 3.5h7.2L18 8.3V20a1.5 1.5 0 0 1-1.5 1.5h-10A1.5 1.5 0 0 1 5 20V5A1.5 1.5 0 0 1 6.5 3.5H6z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+          <path d="M13 3.5V8h5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <div class="toolbar-menu-dropdown hidden" id="fileMenuDropdown" role="menu" aria-labelledby="fileMenuBtn">
+        <button type="button" class="toolbar-menu-item" role="menuitem" id="newBtn">新規作成</button>
+        <button type="button" class="toolbar-menu-item" role="menuitem" id="importBtn">ファイルを開く</button>
+      </div>
+    </div>
+    <button type="button" class="btn icon-btn" id="exportBtn" title="保存" aria-label="保存">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M5 4.5h11.2L19 7.3V19a1.5 1.5 0 0 1-1.5 1.5h-12A1.5 1.5 0 0 1 4 19V6A1.5 1.5 0 0 1 5.5 4.5H5z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+        <path d="M8 4.5v5h7v-5M8 19v-6h8v6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <button type="button" class="btn icon-btn" id="undoBtn" title="Undo" aria-label="Undo">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M8.5 7.5A6 6 0 1 1 7 17.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        <path d="M8.5 3.8v5.2H3.3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" transform="rotate(135 8.5 9)"/>
+      </svg>
+    </button>
+    <button type="button" class="btn icon-btn" id="redoBtn" title="Redo" aria-label="Redo">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M15.5 7.5A6 6 0 1 0 17 17.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        <path d="M15.5 3.8v5.2h5.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" transform="rotate(-135 15.5 9)"/>
+      </svg>
+    </button>
+    <button type="button" class="btn icon-btn" id="arrangeBtn" title="ノード自動整列" aria-label="ノード自動整列">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M5 6h14M5 12h10M5 18h12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    </button>
+    <button type="button" class="btn icon-btn pdf-btn" id="pdfBtn" title="PDF出力（A3横・印刷ダイアログ）" aria-label="PDF出力">PDF</button>
+    <label class="memo-toggle" title="ポストイットメモの表示/非表示">
+      <input type="checkbox" id="memoVisibleToggle" checked />
+      <span class="memo-toggle-track" aria-hidden="true"><span class="memo-toggle-thumb"></span></span>
+      <span class="memo-toggle-label">メモ</span>
+    </label>
+  </header>
+
+  <main class="main">
+    <div class="canvas-shell">
+      <section class="canvas-wrap tool-select" id="canvasWrap">
+        <div class="canvas-content" id="canvasContent">
+          <div class="lane-header-sticky">
+            <svg id="laneHeaderSvg" xmlns="http://www.w3.org/2000/svg" aria-label="Lane headers">
+              <g id="laneHeaderLayer"></g>
+            </svg>
+            <div class="lane-rename-mount" id="laneRenameMount"></div>
+          </div>
+          <svg id="canvas" xmlns="http://www.w3.org/2000/svg" aria-label="Operational Scenario Canvas">
+            <defs>
+              <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse">
+                <path d="M0,0 L10,5 L0,10 z" fill="#54626e"/>
+              </marker>
+              <marker id="arrowBlocked" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse">
+                <path d="M0,0 L10,5 L0,10 z" fill="#d92d20"/>
+              </marker>
+              <marker id="arrowSelected" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto" markerUnits="userSpaceOnUse">
+                <path d="M0,0 L10,5 L0,10 z" fill="#1769aa"/>
+              </marker>
+            </defs>
+            <g id="laneLayer"></g>
+            <g id="edgeLayer"></g>
+            <g id="previewLayer"></g>
+            <g id="nodeLayer"></g>
+            <g id="memoLayer"></g>
+            <g id="nodeAddLayer"></g>
+            <g id="placeLayer"></g>
+            <g id="handlesLayer"></g>
+          </svg>
+          <div class="empty-canvas" id="emptyCanvas">右上の + でレーンを追加できます。</div>
+          <div class="node-rename-mount" id="nodeRenameMount"></div>
+          <div class="memo-rename-mount" id="memoRenameMount"></div>
+          <div class="edge-rename-mount" id="edgeRenameMount"></div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="statusbar">
+    <div class="zoom-controls">
+      <button type="button" class="btn icon-btn" id="zoomOutBtn" title="縮小" aria-label="縮小">−</button>
+      <input id="zoomInput" type="text" value="100%" inputmode="decimal" aria-label="表示倍率" />
+      <button type="button" class="btn icon-btn" id="zoomInBtn" title="拡大" aria-label="拡大">+</button>
+    </div>
+  </footer>
+</div>
+
+<div class="tool-palette hidden" id="nodePalette">
+  <button type="button" class="tool-btn active" data-tool="select" title="選択ツール (V)" aria-label="選択ツール" aria-pressed="true">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M7.2 3.8 L7.2 18.8 L11.4 15.1 L14.4 21.5 L16.6 20.5 L13.5 13.9 L18.7 13.9 Z" fill="currentColor"/>
+    </svg>
+  </button>
+  <button type="button" class="tool-btn" data-tool="zoom" title="ズームツール (Z)" aria-label="ズームツール" aria-pressed="false">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="11" cy="11" r="5.5" fill="none" stroke="currentColor" stroke-width="1.8"/>
+      <path d="M15.2 15.2 L19.5 19.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      <path d="M11 8.5 v5 M8.5 11 h5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+    </svg>
+  </button>
+  <div class="tool-palette-sep" role="separator"></div>
+  <button type="button" class="tool-btn" data-node-type="event" title="Event">
+    <svg viewBox="0 0 28 18" aria-hidden="true">
+      <rect class="tool-icon-shape" x="1" y="1" width="26" height="16" rx="7" ry="7"/>
+    </svg>
+  </button>
+  <button type="button" class="tool-btn" data-node-type="action" title="Action">
+    <svg viewBox="0 0 28 18" aria-hidden="true">
+      <rect class="tool-icon-shape" x="1" y="1" width="26" height="16" rx="1.5" ry="1.5"/>
+    </svg>
+  </button>
+  <button type="button" class="tool-btn" data-node-type="decision" title="Decision">
+    <svg viewBox="0 0 28 18" aria-hidden="true">
+      <polygon class="tool-icon-shape" points="14,1 27,9 14,17 1,9"/>
+    </svg>
+  </button>
+  <button type="button" class="tool-btn" data-node-type="end" title="End">
+    <svg viewBox="0 0 28 18" aria-hidden="true">
+      <rect class="tool-icon-shape" x="1" y="1" width="26" height="16" rx="8" ry="8"/>
+    </svg>
+  </button>
+  <div class="tool-palette-sep" role="separator"></div>
+  <button type="button" class="tool-btn" data-tool-memo="1" title="メモ（ポストイット）" aria-label="メモを追加">
+    <svg viewBox="0 0 28 18" aria-hidden="true">
+      <rect x="5" y="1" width="18" height="16" rx="1.5" fill="#ffe566" stroke="#d4b84a" stroke-width="1.2"/>
+      <path d="M17 13 L23 13 L17 17 Z" fill="#f0d24a" stroke="#d4b84a" stroke-width="1"/>
+    </svg>
+  </button>
+</div>
+
+<div class="tool-palette tool-palette-row hidden" id="quickNodePalette" role="toolbar" aria-label="下にノードを追加"></div>
+
+<input type="file" id="fileInput" accept="application/json,.json" hidden />
+
+<div class="modal-backdrop" id="startupModal">
+  <div class="modal">
+    <div class="modal-actions">
+      <button class="btn primary" id="startupNewBtn">新規作成</button>
+      <button class="btn" id="startupImportBtn">ファイルを開く</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
