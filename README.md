@@ -1,3 +1,8 @@
+## JuzuChart
+フローチャート作成アプリ。  
+
+<img width="1911" height="913" alt="image" src="https://github.com/user-attachments/assets/e9498dff-fa12-4dbd-9a2e-a58664f665ee" />
+
 ## 背景
 
 業務の流れを文書化するには高い認知コストがかかるため、多くの現場では業務フローがメンバーの頭の中にしか存在しない「属人化」が起きている。
