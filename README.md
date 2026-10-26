@@ -1,6 +1,5 @@
 ## JuzuChart
-フローチャート作成アプリ。  
-
+フローチャートのエディタです。LLMが自然言語で書かれた手順や業務の流れをフローチャート化します。（予定）  
 <img width="1911" height="913" alt="image" src="https://github.com/user-attachments/assets/e9498dff-fa12-4dbd-9a2e-a58664f665ee" />
 
 ## 背景
